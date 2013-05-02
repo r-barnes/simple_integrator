@@ -4,6 +4,7 @@
 #include <functional>
 #include <cmath>
 #include <iostream>
+#include <array>
 
 template <class T>
 class integrator {
@@ -49,23 +50,23 @@ int integrator<T>::steps() const { return stepcount; }
 
 template<class T>
 void integrator<T>::step() {
+  T e1, e2;
 //  std::cerr<<"State: "<<stateval<<std::endl;
-  T e1,e2;
-  double abs_e1,abs_e2;
+
   ++stepcount;
-  dx(stateval     , e1, t+dtval);
-  dx(stateval+e1/2, e2, t+dtval/2);
-  abs_e1=std::abs(e1);
-  abs_e2=std::abs(e2);
+  dx(stateval           , e1, t);
+  dx(stateval+e1*dtval/2, e2, t+dtval/2.);
+  double abs_e1=abs(stateval+e1*dtval);
+  double abs_e2=abs(stateval+e1*dtval/2+e2*dtval/2);
 //  std::cerr<<"Step: "<<e1<<" "<<e2<<" "<<(fabs(abs_e1-abs_e2)/((abs_e1+abs_e2)/2))<<std::endl;
-  if( (std::abs(abs_e1-abs_e2)/((abs_e1+abs_e2)/2))>0.05 ){
-    stateval+=e1/2;
-    t+=dtval/2;
-    dtval/=2;
+  if( (std::abs(abs_e1-abs_e2)/(std::abs(abs_e1+abs_e2)/2))>0.05 ){
+    stateval+=e1*dtval/2.;
+    t+=dtval/2.;
+    dtval/=2.;
     if(dtval<dtmin) dtval=dtmin;
     goodsteps=0;
   } else {
-    stateval+=e1;
+    stateval+=e1*dtval;
     t+=dtval;
     ++goodsteps;
   }
