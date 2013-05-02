@@ -3,8 +3,8 @@
 
 #include <functional>
 #include <cmath>
-#include <iostream>
 #include <array>
+#include <cassert>
 
 template <class T>
 class integrator {
@@ -28,6 +28,10 @@ class integrator {
 
 template <class T>
 integrator<T>::integrator(const T &stateval, dx_type dx, double dtmax, double dtmin) : stateval(stateval), dx(dx), dtmax(dtmax), dtmin(dtmin) {
+  assert(dtmin>0);
+  assert(dtmax>0);
+  assert(dtmin<=dtmax);
+
   dtval=dtmin;
   stepcount=0;
   t=0;
@@ -43,7 +47,12 @@ template<class T>
 double integrator<T>::dt() const { return dtval; }
 
 template<class T>
-void integrator<T>::dt(double h) { dtval=h; }
+void integrator<T>::dt(double h) {
+  assert(h>0);
+  assert(h>=dtmin);
+  assert(h<=dtmax);
+  dtval=h;
+}
 
 template<class T>
 int integrator<T>::steps() const { return stepcount; }
