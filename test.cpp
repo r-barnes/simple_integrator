@@ -1,16 +1,22 @@
 #include <iostream>
+#include <array>
+#include "arraystate.hpp"
 #include "integrator.hpp"
 using namespace std;
 
-void df(const double &x, double &dxdt, double t){
-  dxdt=2*t;
+typedef arraystate<double, 2> state_type;
+
+void df(const state_type &state, state_type &dxdt, double t){
+  dxdt[0]= 1.5*state[0]-1*state[0]*state[1];
+  dxdt[1]=-3  *state[1]+1*state[0]*state[1];
 }
 
 int main(){
-  double x=0.5;
-  integrator<double> stepper(x, df, 0.01, 1e-6);
+  state_type x={{10,4}};
+  integrator<state_type> stepper(x, df, 0.01, 1e-3);
 
-  while(stepper.steps()<100){
+  cout<<stepper.time()<<" "<<stepper.state()<<endl;
+  while(stepper.steps()<1000){
     stepper.step();
     cout<<stepper.time()<<" "<<stepper.state()<<endl;
   }
