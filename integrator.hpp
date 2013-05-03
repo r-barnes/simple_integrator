@@ -137,6 +137,11 @@ template<class T>
 void event_integrator<T>::step() {
   T e1, e2;
 
+  if(at_event && calq.current_time()==integrator<T>::t){
+    at_event_name=calq.current_event();
+    return;
+  }
+
   at_event=false;
 
   ++integrator<T>::stepcount;
