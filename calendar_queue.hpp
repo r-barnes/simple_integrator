@@ -19,8 +19,9 @@ class CalendarQueue {
 			public:
 				double t;
 				std::string event;
-				DiscreteEvent (double t, const char event[])       : t(t), event(event) {}
-				DiscreteEvent (double t, const std::string &event) : t(t), event(event) {}
+        double recur_int;
+				DiscreteEvent (double t, const char event[], double recur_int)       : t(t), event(event), recur_int(recur_int) {}
+				DiscreteEvent (double t, const std::string &event, double recur_int) : t(t), event(event), recur_int(recur_int) {}
         bool operator< (const DiscreteEvent& a) const {
           return t>a.t;
         }
@@ -30,14 +31,16 @@ class CalendarQueue {
 		deq_type deq;
 	public:
     ///Schedule \a event at \a t
-		void insert(double t, const char event[]){
+		void insert(double t, const char event[], double recur_int=0){
+      assert(recur_int>=0);
       //assert(empty() || t>=current_time());
-			deq.push(DiscreteEvent(t,event));
+			deq.push(DiscreteEvent(t,event,recur_int));
 		}
     ///Schedule \a event at \a t
-		void insert(double t, const std::string &event){
+		void insert(double t, const std::string &event, double recur_int=0){
+      assert(recur_int>=0);
       //assert(empty() || t>=current_time());
-			deq.push(DiscreteEvent(t,event));
+			deq.push(DiscreteEvent(t,event,recur_int));
 		}
     ///Time the top element of the calendar queue is scheduled for
 		double current_time() const {
@@ -49,13 +52,17 @@ class CalendarQueue {
 		}
     ///Remove the top element of the calendar queue, and cast it into oblivion
 		void pop() {
-			if(!deq.empty())
-				deq.pop();
+      if(deq.empty())
+        return;
+
+      if(deq.top().recur_int>0)
+        insert(current_time()+deq.top().recur_int, deq.top().event, deq.top().recur_int);
+			deq.pop();
 		}
     ///Take the top element of the queue and insert a copy of it \a dt
     ///into the future
 		double reschedule_top(double dt) {
-			deq.push(DiscreteEvent(current_time()+dt, current_event()));
+			deq.push(DiscreteEvent(deq.top().t+dt, deq.top().event, deq.top().recur_int));
 			return current_time()+dt;
 		}
     ///Clear all events from the calendar queue
