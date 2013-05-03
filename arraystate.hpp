@@ -10,12 +10,12 @@ class arraystate : public std::array<T,N> {
   public:
     arraystate() {}
     arraystate(const std::vector<T> &init){
-      for(int i=0;i<std::array<T,N>::size();++i)
+      for(unsigned int i=0;i<std::array<T,N>::size();++i)
         std::array<T,N>::operator[](i)=init[i];
     }
 
     arraystate<T,N>& operator+=(const arraystate<T,N> &other) {
-      for(int i=0;i<std::array<T,N>::size();++i)
+      for(unsigned int i=0;i<std::array<T,N>::size();++i)
         std::array<T,N>::operator[](i)+=other[i];
     }
 };
