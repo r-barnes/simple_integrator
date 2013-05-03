@@ -103,21 +103,21 @@ class event_integrator : public integrator<T> {
       at_event=false;
       at_event_name="";
     }
-    void insert_event(double t, const std::string &event);
-    void insert_event(double t, const char event[]);
+    void insert_event(double t, const std::string &event, double recur_int);
+    void insert_event(double t, const char event[], double recur_int);
     bool is_event() const;
     std::string event() const;
     void step();
 };
 
 template<class T>
-void event_integrator<T>::insert_event(double t, const std::string &event){
-  calq.insert(t,event);
+void event_integrator<T>::insert_event(double t, const std::string &event, double recur_int=0){
+  calq.insert(t,event,recur_int);
 }
 
 template<class T>
-void event_integrator<T>::insert_event(double t, const char event[]){
-  calq.insert(t,event);
+void event_integrator<T>::insert_event(double t, const char event[], double recur_int=0){
+  calq.insert(t,event,recur_int);
 }
 
 template<class T>
