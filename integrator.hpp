@@ -5,10 +5,11 @@
 #include <cmath>
 #include <array>
 #include <cassert>
+#include "calendar_queue.hpp"
 
 template <class T>
 class integrator {
-  private:
+  protected:
     T stateval;
     typedef std::function<void(const T &state, T &dxdt, double t)> dx_type;
     double dtval, dtmax, dtmin;
@@ -84,6 +85,108 @@ void integrator<T>::step() {
     dtval*=2;
   if(dtval>dtmax)
     dtval=dtmax;
+}
+
+
+
+
+
+
+template <class T>
+class event_integrator : public integrator<T> {
+  private:
+    CalendarQueue calq;
+    bool at_event;
+    std::string at_event_name;
+  public:
+    event_integrator(const T &stateval, typename integrator<T>::dx_type dx, double dtmax, double dtmin) : integrator<T>(stateval, dx, dtmax, dtmin) {
+      at_event=false;
+      at_event_name="";
+    }
+    void insert_event(double t, const std::string &event);
+    void insert_event(double t, const char event[]);
+    bool is_event() const;
+    std::string event() const;
+    void step();
+};
+
+template<class T>
+void event_integrator<T>::insert_event(double t, const std::string &event){
+  calq.insert(t,event);
+}
+
+template<class T>
+void event_integrator<T>::insert_event(double t, const char event[]){
+  calq.insert(t,event);
+}
+
+template<class T>
+bool event_integrator<T>::is_event() const {
+  return at_event;
+}
+
+template<class T>
+std::string event_integrator<T>::event() const {
+  if( is_event() )
+    return calq.current_event();
+  else
+    return "";
+}
+
+template<class T>
+void event_integrator<T>::step() {
+  T e1, e2;
+
+  at_event=false;
+
+  ++integrator<T>::stepcount;
+
+  if(!calq.empty()){
+    while(
+        integrator<T>::dtval > integrator<T>::dtmin
+        && integrator<T>::t + integrator<T>::dtval > calq.current_time()
+    ) {
+      integrator<T>::dtval/=2.;
+    }
+
+    if(integrator<T>::dtval < integrator<T>::dtmin)
+      integrator<T>::dtval = integrator<T>::dtmin;
+
+    if(integrator<T>::dtval == integrator<T>::dtmin && integrator<T>::t + integrator<T>::dtval > calq.current_time()){
+      integrator<T>::dtval=calq.current_time()-integrator<T>::t;
+      integrator<T>::dx(integrator<T>::stateval, e1, integrator<T>::t);
+      integrator<T>::stateval+=e1*integrator<T>::dtval;
+      integrator<T>::t=calq.current_time();
+      integrator<T>::dtval = integrator<T>::dtmin;
+      at_event=true;
+      at_event_name=calq.current_event();
+      calq.pop();
+      return;
+    }
+  }    
+
+  integrator<T>::dx(integrator<T>::stateval           , e1, integrator<T>::t);
+  integrator<T>::dx(integrator<T>::stateval + e1*integrator<T>::dtval/2, e2, integrator<T>::t+integrator<T>::dtval/2.);
+  double abs_e1=abs(integrator<T>::stateval + e1*integrator<T>::dtval);
+  double abs_e2=abs(integrator<T>::stateval + e1*integrator<T>::dtval/2 + e2*integrator<T>::dtval/2);
+
+  if( (std::abs(abs_e1-abs_e2)/(std::abs(abs_e1+abs_e2)/2))>0.05 ){
+    integrator<T>::stateval+=e1*integrator<T>::dtval/2.;
+    integrator<T>::t+=integrator<T>::dtval/2.;
+    integrator<T>::dtval/=2.;
+    if(integrator<T>::dtval<integrator<T>::dtmin)
+      integrator<T>::dtval=integrator<T>::dtmin;
+    integrator<T>::goodsteps=0;
+  } else {
+    integrator<T>::stateval+=e1*integrator<T>::dtval;
+    integrator<T>::t+=integrator<T>::dtval;
+    ++integrator<T>::goodsteps;
+  }
+
+  if(integrator<T>::dtval<integrator<T>::dtmax && integrator<T>::goodsteps>=8)
+    integrator<T>::dtval*=2;
+  if(integrator<T>::dtval>integrator<T>::dtmax)
+    integrator<T>::dtval=integrator<T>::dtmax;
 }
 
 #endif
