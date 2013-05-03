@@ -41,6 +41,10 @@ beginning on the 4th year of the simulation.
 Building
 ========
 
+To include the integrator in your own project, just add **integrator.hpp** to
+your project and include it in your implementation, as demonstrated in the
+examples.
+
 To build, run
 
     make
