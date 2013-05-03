@@ -1,5 +1,5 @@
-#ifndef __integrator_
-#define __integrator_
+#ifndef __Integrator_
+#define __Integrator_
 
 #include <functional>
 #include <cmath>
@@ -10,14 +10,15 @@
 namespace si_lib {
 
 /**
-  The calendar queue class stores a (time,event_name) pair.
+  The calendar queue class stores a (time,event_name,recurrence_interval) tuple.
   It is essentially a priority queue whose top priority is always increasing.
 */
 class CalendarQueue {
 	private:
     /**
       This class stores an event. An event is represented by a floating-point
-      time and a string identifying what the event is.
+      time and a string identifying what the event is. The event may recur at
+      a regular interval.
     */
 		class DiscreteEvent {
 			public:
@@ -82,19 +83,20 @@ class CalendarQueue {
 
 
 
-
-
-
+/**
+  The ArrayState class wraps std::array providing algebra operations used by
+  the Integrator.
+*/
 template <class T, int N>
-class arraystate : public std::array<T,N> {
+class ArrayState : public std::array<T,N> {
   public:
-    arraystate() {}
-    arraystate(const std::vector<T> &init){
+    ArrayState() {}
+    ArrayState(const std::vector<T> &init){
       for(unsigned int i=0;i<std::array<T,N>::size();++i)
         std::array<T,N>::operator[](i)=init[i];
     }
 
-    arraystate<T,N>& operator+=(const arraystate<T,N> &other) {
+    ArrayState<T,N>& operator+=(const ArrayState<T,N> &other) {
       for(unsigned int i=0;i<std::array<T,N>::size();++i)
         std::array<T,N>::operator[](i)+=other[i];
       return *this;
@@ -102,49 +104,49 @@ class arraystate : public std::array<T,N> {
 };
 
 template <class T, int N>
-arraystate<T,N> operator+( const arraystate<T,N> &a , double b ){
-  arraystate<T,N> result(a);
+ArrayState<T,N> operator+( const ArrayState<T,N> &a , double b ){
+  ArrayState<T,N> result(a);
   for(double& i: result)
     i+=b;
   return result;
 }
 
 template <class T, int N>
-arraystate<T,N> operator+( double a, const arraystate<T,N> &b ){
+ArrayState<T,N> operator+( double a, const ArrayState<T,N> &b ){
   return b+a;
 }
 
 template <class T, int N>
-arraystate<T,N> operator+( const arraystate<T,N> &a, const arraystate<T,N> &b ){
-  arraystate<T,N> result(a);
+ArrayState<T,N> operator+( const ArrayState<T,N> &a, const ArrayState<T,N> &b ){
+  ArrayState<T,N> result(a);
   for(unsigned int i=0;i<result.size();++i)
     result[i]+=b[i];
   return result;
 }
 
 template <class T, int N>
-arraystate<T,N> operator*( const arraystate<T,N> &a, double b ){
-  arraystate<T,N> result(a);
+ArrayState<T,N> operator*( const ArrayState<T,N> &a, double b ){
+  ArrayState<T,N> result(a);
   for(double& i: result)
     i*=b;
   return result;
 }
 
 template <class T, int N>
-arraystate<T,N> operator*( double a, const arraystate<T,N> &b ){
+ArrayState<T,N> operator*( double a, const ArrayState<T,N> &b ){
   return b*a;
 }
 
 template <class T, int N>
-arraystate<T,N> operator/( const arraystate<T,N> &a, double b){
-  arraystate<T,N> result(a);
+ArrayState<T,N> operator/( const ArrayState<T,N> &a, double b){
+  ArrayState<T,N> result(a);
   for(double& i: result)
     i/=b;
   return result;
 }
 
 template <class T, int N>
-double abs( const arraystate<T,N> &a ){
+double abs( const ArrayState<T,N> &a ){
   double result=0;
   for(const double& i: a)
     result+=std::abs(i);
@@ -152,8 +154,8 @@ double abs( const arraystate<T,N> &a ){
 }
 
 template <class T, int N>
-std::ostream& operator<<(std::ostream &out, const arraystate<T,N> &a){
-  for(typename arraystate<T,N>::const_iterator i=a.begin();i!=a.end();++i)
+std::ostream& operator<<(std::ostream &out, const ArrayState<T,N> &a){
+  for(typename ArrayState<T,N>::const_iterator i=a.begin();i!=a.end();++i)
     out<<*i<<" ";
   return out;
 }
@@ -162,8 +164,13 @@ std::ostream& operator<<(std::ostream &out, const arraystate<T,N> &a){
 
 
 
+
+/**
+  The Integrator class supplies a simple Euler's method integrator with an
+  adaptive step-size scheme
+*/
 template <class T>
-class integrator {
+class Integrator {
   protected:
     T stateval;
     typedef std::function<void(const T &state, T &dxdt, double t)> dx_type;
@@ -173,7 +180,7 @@ class integrator {
     int goodsteps;
     int stepcount;
   public:
-    integrator(const T &stateval, dx_type dx, double dtmax, double dtmin);
+    Integrator(const T &stateval, dx_type dx, double dtmax, double dtmin);
     double time() const;
     T& state();
     double dt() const;
@@ -183,7 +190,7 @@ class integrator {
 };
 
 template <class T>
-integrator<T>::integrator(const T &stateval, dx_type dx, double dtmax, double dtmin) : stateval(stateval), dx(dx), dtmax(dtmax), dtmin(dtmin) {
+Integrator<T>::Integrator(const T &stateval, dx_type dx, double dtmax, double dtmin) : stateval(stateval), dx(dx), dtmax(dtmax), dtmin(dtmin) {
   assert(dtmin>0);
   assert(dtmax>0);
   assert(dtmin<=dtmax);
@@ -194,16 +201,16 @@ integrator<T>::integrator(const T &stateval, dx_type dx, double dtmax, double dt
 }
 
 template<class T>
-double integrator<T>::time() const { return t; }
+double Integrator<T>::time() const { return t; }
 
 template<class T>
-T& integrator<T>::state() { return stateval; }
+T& Integrator<T>::state() { return stateval; }
 
 template<class T>
-double integrator<T>::dt() const { return dtval; }
+double Integrator<T>::dt() const { return dtval; }
 
 template<class T>
-void integrator<T>::dt(double h) {
+void Integrator<T>::dt(double h) {
   assert(h>0);
   assert(h>=dtmin);
   assert(h<=dtmax);
@@ -211,10 +218,10 @@ void integrator<T>::dt(double h) {
 }
 
 template<class T>
-int integrator<T>::steps() const { return stepcount; }
+int Integrator<T>::steps() const { return stepcount; }
 
 template<class T>
-void integrator<T>::step() {
+void Integrator<T>::step() {
   T e1, e2;
 
   ++stepcount;
@@ -246,15 +253,20 @@ void integrator<T>::step() {
 
 
 
-
+/**
+  The EventIntegrator class supplies a simple Euler's method integrator with an
+  adaptive step-size scheme. It also allows for discrete events. It approaches
+  these events with an exponentially-decreasing stepsize and moves away from
+  them in the same fashion.
+*/
 template <class T>
-class event_integrator : public integrator<T> {
+class EventIntegrator : public Integrator<T> {
   private:
     CalendarQueue calq;
     bool at_event;
     std::string at_event_name;
   public:
-    event_integrator(const T &stateval, typename integrator<T>::dx_type dx, double dtmax, double dtmin) : integrator<T>(stateval, dx, dtmax, dtmin) {
+    EventIntegrator(const T &stateval, typename Integrator<T>::dx_type dx, double dtmax, double dtmin) : Integrator<T>(stateval, dx, dtmax, dtmin) {
       at_event=false;
       at_event_name="";
     }
@@ -266,22 +278,22 @@ class event_integrator : public integrator<T> {
 };
 
 template<class T>
-void event_integrator<T>::insert_event(double t, const std::string &event, double recur_int=0){
+void EventIntegrator<T>::insert_event(double t, const std::string &event, double recur_int=0){
   calq.insert(t,event,recur_int);
 }
 
 template<class T>
-void event_integrator<T>::insert_event(double t, const char event[], double recur_int=0){
+void EventIntegrator<T>::insert_event(double t, const char event[], double recur_int=0){
   calq.insert(t,event,recur_int);
 }
 
 template<class T>
-bool event_integrator<T>::is_event() const {
+bool EventIntegrator<T>::is_event() const {
   return at_event;
 }
 
 template<class T>
-std::string event_integrator<T>::event() const {
+std::string EventIntegrator<T>::event() const {
   if( is_event() )
     return calq.current_event();
   else
@@ -289,10 +301,10 @@ std::string event_integrator<T>::event() const {
 }
 
 template<class T>
-void event_integrator<T>::step() {
+void EventIntegrator<T>::step() {
   T e1, e2;
 
-  if(at_event && calq.current_time()==integrator<T>::t){
+  if(at_event && calq.current_time()==Integrator<T>::t){
     at_event_name=calq.current_event();
     calq.pop();
     return;
@@ -300,25 +312,25 @@ void event_integrator<T>::step() {
 
   at_event=false;
 
-  ++integrator<T>::stepcount;
+  ++Integrator<T>::stepcount;
 
   if(!calq.empty()){
     while(
-        integrator<T>::dtval > integrator<T>::dtmin
-        && integrator<T>::t + integrator<T>::dtval > calq.current_time()
+        Integrator<T>::dtval > Integrator<T>::dtmin
+        && Integrator<T>::t + Integrator<T>::dtval > calq.current_time()
     ) {
-      integrator<T>::dtval/=2.;
+      Integrator<T>::dtval/=2.;
     }
 
-    if(integrator<T>::dtval < integrator<T>::dtmin)
-      integrator<T>::dtval = integrator<T>::dtmin;
+    if(Integrator<T>::dtval < Integrator<T>::dtmin)
+      Integrator<T>::dtval = Integrator<T>::dtmin;
 
-    if(integrator<T>::dtval == integrator<T>::dtmin && integrator<T>::t + integrator<T>::dtval > calq.current_time()){
-      integrator<T>::dtval=calq.current_time()-integrator<T>::t;
-      integrator<T>::dx(integrator<T>::stateval, e1, integrator<T>::t);
-      integrator<T>::stateval+=e1*integrator<T>::dtval;
-      integrator<T>::t=calq.current_time();
-      integrator<T>::dtval = integrator<T>::dtmin;
+    if(Integrator<T>::dtval == Integrator<T>::dtmin && Integrator<T>::t + Integrator<T>::dtval > calq.current_time()){
+      Integrator<T>::dtval=calq.current_time()-Integrator<T>::t;
+      Integrator<T>::dx(Integrator<T>::stateval, e1, Integrator<T>::t);
+      Integrator<T>::stateval+=e1*Integrator<T>::dtval;
+      Integrator<T>::t=calq.current_time();
+      Integrator<T>::dtval = Integrator<T>::dtmin;
       at_event=true;
       at_event_name=calq.current_event();
       calq.pop();
@@ -326,28 +338,28 @@ void event_integrator<T>::step() {
     }
   }    
 
-  integrator<T>::dx(integrator<T>::stateval           , e1, integrator<T>::t);
-  integrator<T>::dx(integrator<T>::stateval + e1*integrator<T>::dtval/2, e2, integrator<T>::t+integrator<T>::dtval/2.);
-  double abs_e1=abs(integrator<T>::stateval + e1*integrator<T>::dtval);
-  double abs_e2=abs(integrator<T>::stateval + e1*integrator<T>::dtval/2 + e2*integrator<T>::dtval/2);
+  Integrator<T>::dx(Integrator<T>::stateval           , e1, Integrator<T>::t);
+  Integrator<T>::dx(Integrator<T>::stateval + e1*Integrator<T>::dtval/2, e2, Integrator<T>::t+Integrator<T>::dtval/2.);
+  double abs_e1=abs(Integrator<T>::stateval + e1*Integrator<T>::dtval);
+  double abs_e2=abs(Integrator<T>::stateval + e1*Integrator<T>::dtval/2 + e2*Integrator<T>::dtval/2);
 
   if( (std::abs(abs_e1-abs_e2)/(std::abs(abs_e1+abs_e2)/2))>0.05 ){
-    integrator<T>::stateval+=e1*integrator<T>::dtval/2.;
-    integrator<T>::t+=integrator<T>::dtval/2.;
-    integrator<T>::dtval/=2.;
-    if(integrator<T>::dtval<integrator<T>::dtmin)
-      integrator<T>::dtval=integrator<T>::dtmin;
-    integrator<T>::goodsteps=0;
+    Integrator<T>::stateval+=e1*Integrator<T>::dtval/2.;
+    Integrator<T>::t+=Integrator<T>::dtval/2.;
+    Integrator<T>::dtval/=2.;
+    if(Integrator<T>::dtval<Integrator<T>::dtmin)
+      Integrator<T>::dtval=Integrator<T>::dtmin;
+    Integrator<T>::goodsteps=0;
   } else {
-    integrator<T>::stateval+=e1*integrator<T>::dtval;
-    integrator<T>::t+=integrator<T>::dtval;
-    ++integrator<T>::goodsteps;
+    Integrator<T>::stateval+=e1*Integrator<T>::dtval;
+    Integrator<T>::t+=Integrator<T>::dtval;
+    ++Integrator<T>::goodsteps;
   }
 
-  if(integrator<T>::dtval<integrator<T>::dtmax && integrator<T>::goodsteps>=8)
-    integrator<T>::dtval*=2;
-  if(integrator<T>::dtval>integrator<T>::dtmax)
-    integrator<T>::dtval=integrator<T>::dtmax;
+  if(Integrator<T>::dtval<Integrator<T>::dtmax && Integrator<T>::goodsteps>=8)
+    Integrator<T>::dtval*=2;
+  if(Integrator<T>::dtval>Integrator<T>::dtmax)
+    Integrator<T>::dtval=Integrator<T>::dtmax;
 }
 
 }

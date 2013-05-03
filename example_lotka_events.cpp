@@ -3,7 +3,7 @@
 #include "integrator.hpp"
 using namespace std;
 
-typedef si_lib::arraystate<double, 2> state_type;
+typedef si_lib::ArrayState<double, 2> state_type;
 
 void df(const state_type &state, state_type &dxdt, double t){
   dxdt[0]= 1.5*state[0]-1*state[0]*state[1];
@@ -12,7 +12,7 @@ void df(const state_type &state, state_type &dxdt, double t){
 
 int main(){
   state_type x={{10,4}};
-  si_lib::event_integrator<state_type> stepper(x, df, 0.01, 1e-3);
+  si_lib::EventIntegrator<state_type> stepper(x, df, 0.01, 1e-3);
 
   stepper.insert_event(10,"large_drought");
   stepper.insert_event(4,"recurring_drought",3);
