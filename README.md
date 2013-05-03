@@ -14,7 +14,7 @@ simulation of many-dimensional systems.
 Additionally, a special class is provided which allows for discrete-time events
 which instantaneously alter the state of a system. The integrator approaches
 such events cautiously, using an exponentially-decreasing step-size. It
-withdraws with equally caution.
+withdraws with equal caution.
 
 The file **integrator.hpp** implements the integrator.
 
