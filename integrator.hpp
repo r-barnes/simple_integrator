@@ -5,7 +5,162 @@
 #include <cmath>
 #include <array>
 #include <cassert>
-#include "calendar_queue.hpp"
+#include <queue>
+
+namespace si_lib {
+
+/**
+  The calendar queue class stores a (time,event_name) pair.
+  It is essentially a priority queue whose top priority is always increasing.
+*/
+class CalendarQueue {
+	private:
+    /**
+      This class stores an event. An event is represented by a floating-point
+      time and a string identifying what the event is.
+    */
+		class DiscreteEvent {
+			public:
+				double t;
+				std::string event;
+        double recur_int;
+				DiscreteEvent (double t, const char event[], double recur_int)       : t(t), event(event), recur_int(recur_int) {}
+				DiscreteEvent (double t, const std::string &event, double recur_int) : t(t), event(event), recur_int(recur_int) {}
+        bool operator< (const DiscreteEvent& a) const {
+          return t>a.t;
+        }
+		};
+
+		typedef std::priority_queue<DiscreteEvent, std::vector<DiscreteEvent> > deq_type;
+		deq_type deq;
+	public:
+    ///Schedule \a event at \a t
+		void insert(double t, const char event[], double recur_int=0){
+      assert(recur_int>=0);
+      //assert(empty() || t>=current_time());
+			deq.push(DiscreteEvent(t,event,recur_int));
+		}
+    ///Schedule \a event at \a t
+		void insert(double t, const std::string &event, double recur_int=0){
+      assert(recur_int>=0);
+      //assert(empty() || t>=current_time());
+			deq.push(DiscreteEvent(t,event,recur_int));
+		}
+    ///Time the top element of the calendar queue is scheduled for
+		double current_time() const {
+			return deq.top().t;
+		}
+    ///Event indicated by the top element of the calendar queue
+		std::string current_event() const {
+			return deq.top().event;
+		}
+    ///Remove the top element of the calendar queue, and cast it into oblivion
+		void pop() {
+      if(deq.empty())
+        return;
+
+      if(deq.top().recur_int>0)
+        insert(current_time()+deq.top().recur_int, deq.top().event, deq.top().recur_int);
+			deq.pop();
+		}
+    ///Take the top element of the queue and insert a copy of it \a dt
+    ///into the future
+		double reschedule_top(double dt) {
+			deq.push(DiscreteEvent(deq.top().t+dt, deq.top().event, deq.top().recur_int));
+			return current_time()+dt;
+		}
+    ///Clear all events from the calendar queue
+		void clear() {
+			deq=deq_type();
+		};
+    ///Is the calendar queue empty?
+		bool empty() const {
+			return deq.empty();
+		}
+};
+
+
+
+
+
+
+
+template <class T, int N>
+class arraystate : public std::array<T,N> {
+  public:
+    arraystate() {}
+    arraystate(const std::vector<T> &init){
+      for(unsigned int i=0;i<std::array<T,N>::size();++i)
+        std::array<T,N>::operator[](i)=init[i];
+    }
+
+    arraystate<T,N>& operator+=(const arraystate<T,N> &other) {
+      for(unsigned int i=0;i<std::array<T,N>::size();++i)
+        std::array<T,N>::operator[](i)+=other[i];
+      return *this;
+    }
+};
+
+template <class T, int N>
+arraystate<T,N> operator+( const arraystate<T,N> &a , double b ){
+  arraystate<T,N> result(a);
+  for(double& i: result)
+    i+=b;
+  return result;
+}
+
+template <class T, int N>
+arraystate<T,N> operator+( double a, const arraystate<T,N> &b ){
+  return b+a;
+}
+
+template <class T, int N>
+arraystate<T,N> operator+( const arraystate<T,N> &a, const arraystate<T,N> &b ){
+  arraystate<T,N> result(a);
+  for(unsigned int i=0;i<result.size();++i)
+    result[i]+=b[i];
+  return result;
+}
+
+template <class T, int N>
+arraystate<T,N> operator*( const arraystate<T,N> &a, double b ){
+  arraystate<T,N> result(a);
+  for(double& i: result)
+    i*=b;
+  return result;
+}
+
+template <class T, int N>
+arraystate<T,N> operator*( double a, const arraystate<T,N> &b ){
+  return b*a;
+}
+
+template <class T, int N>
+arraystate<T,N> operator/( const arraystate<T,N> &a, double b){
+  arraystate<T,N> result(a);
+  for(double& i: result)
+    i/=b;
+  return result;
+}
+
+template <class T, int N>
+double abs( const arraystate<T,N> &a ){
+  double result=0;
+  for(const double& i: a)
+    result+=std::abs(i);
+  return result;
+}
+
+template <class T, int N>
+std::ostream& operator<<(std::ostream &out, const arraystate<T,N> &a){
+  for(typename arraystate<T,N>::const_iterator i=a.begin();i!=a.end();++i)
+    out<<*i<<" ";
+  return out;
+}
+
+
+
+
 
 template <class T>
 class integrator {
@@ -193,6 +348,8 @@ void event_integrator<T>::step() {
     integrator<T>::dtval*=2;
   if(integrator<T>::dtval>integrator<T>::dtmax)
     integrator<T>::dtval=integrator<T>::dtmax;
+}
+
 }
 
 #endif

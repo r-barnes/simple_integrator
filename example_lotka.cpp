@@ -1,10 +1,9 @@
 #include <iostream>
 #include <array>
-#include "arraystate.hpp"
 #include "integrator.hpp"
 using namespace std;
 
-typedef arraystate<double, 2> state_type;
+typedef si_lib::arraystate<double, 2> state_type;
 
 void df(const state_type &state, state_type &dxdt, double t){
   dxdt[0]= 1.5*state[0]-1*state[0]*state[1];
@@ -13,7 +12,7 @@ void df(const state_type &state, state_type &dxdt, double t){
 
 int main(){
   state_type x={{10,4}};
-  integrator<state_type> stepper(x, df, 0.01, 1e-3);
+  si_lib::integrator<state_type> stepper(x, df, 0.01, 1e-3);
 
   cout<<stepper.time()<<" "<<stepper.state()<<endl;
   while(stepper.steps()<1000){
