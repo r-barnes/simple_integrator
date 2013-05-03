@@ -1,6 +1,10 @@
 SIMPLE INTEGRATOR
 =================
 
+How would you perform a numerical integration of an equation with the form
+
+    y'(t)=f(t, y(t))
+
 There are many integrators in the world. Many of the emphasise accuracy and use
 high-order methods to estimate and minimize error. This kind of accuracy is
 expensive. For systems that are generally well-behaved where the goal is
@@ -8,8 +12,9 @@ understanding of dynamics, rather than exact predictions, accuracy is no longer
 paramount.
 
 This C++11 library implements a simple adaptive step-size integrator based on
-Euler's method. The method is both fast and simple, allowing for the quick
-simulation of many-dimensional systems.
+[Euler's method](https://en.wikipedia.org/wiki/Euler_method). The method is
+both fast and simple, allowing for the quick simulation of many-dimensional
+systems.
 
 Additionally, a special class is provided which allows for discrete-time events
 which instantaneously alter the state of a system. The integrator approaches
