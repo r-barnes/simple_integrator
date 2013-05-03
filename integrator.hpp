@@ -12,8 +12,8 @@ class integrator {
   protected:
     T stateval;
     typedef std::function<void(const T &state, T &dxdt, double t)> dx_type;
-    double dtval, dtmax, dtmin;
     dx_type dx;
+    double dtval, dtmax, dtmin;
     double t;
     int goodsteps;
     int stepcount;
