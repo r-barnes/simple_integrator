@@ -17,6 +17,7 @@ class arraystate : public std::array<T,N> {
     arraystate<T,N>& operator+=(const arraystate<T,N> &other) {
       for(unsigned int i=0;i<std::array<T,N>::size();++i)
         std::array<T,N>::operator[](i)+=other[i];
+      return *this;
     }
 };
 
