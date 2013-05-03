@@ -175,12 +175,12 @@ class Integrator {
     T stateval;
     typedef std::function<void(const T &state, T &dxdt, double t)> dx_type;
     dx_type dx;
-    double dtval, dtmax, dtmin;
+    double dtval, dtmin, dtmax;
     double t;
     int goodsteps;
     int stepcount;
   public:
-    Integrator(const T &stateval, dx_type dx, double dtmax, double dtmin);
+    Integrator(const T &stateval, dx_type dx, double dtmin, double dtmax);
     double time() const;
     T& state();
     double dt() const;
