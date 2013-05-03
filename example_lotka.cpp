@@ -23,7 +23,7 @@ int main(){
 
   //Create an EventIntegrator object with initial state **x**, first-derivative
   //**df**, minimum step-size 1e-3, and maximum step-size 0.01
-  si_lib::Integrator<state_type> stepper(x, df, 0.01, 1e-3);
+  si_lib::Integrator<state_type> stepper(x, df, 1e-3, 0.01);
 
   //Display the initial state
   cout<<stepper.time()<<" "<<stepper.state()<<endl;

@@ -28,7 +28,7 @@ int main(){
 
   //Create an EventIntegrator object with initial state **x**, first-derivative
   //**df**, minimum step-size 1e-3, and maximum step-size 0.01
-  si_lib::EventIntegrator<state_type> stepper(x, df, 0.01, 1e-3);
+  si_lib::EventIntegrator<state_type> stepper(x, df, 1e-3, 0.01);
 
   //Insert an event which occurs once at t=10
   stepper.insert_event(10,"large_drought");

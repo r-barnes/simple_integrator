@@ -190,7 +190,7 @@ class Integrator {
 };
 
 template <class T>
-Integrator<T>::Integrator(const T &stateval, dx_type dx, double dtmax, double dtmin) : stateval(stateval), dx(dx), dtmax(dtmax), dtmin(dtmin) {
+Integrator<T>::Integrator(const T &stateval, dx_type dx, double dtmin, double dtmax) : stateval(stateval), dx(dx), dtmin(dtmin), dtmax(dtmax) {
   assert(dtmin>0);
   assert(dtmax>0);
   assert(dtmin<=dtmax);
@@ -266,7 +266,7 @@ class EventIntegrator : public Integrator<T> {
     bool at_event;
     std::string at_event_name;
   public:
-    EventIntegrator(const T &stateval, typename Integrator<T>::dx_type dx, double dtmax, double dtmin) : Integrator<T>(stateval, dx, dtmax, dtmin) {
+    EventIntegrator(const T &stateval, typename Integrator<T>::dx_type dx, double dtmin, double dtmax) : Integrator<T>(stateval, dx, dtmin, dtmax) {
       at_event=false;
       at_event_name="";
     }
