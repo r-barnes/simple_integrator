@@ -139,6 +139,7 @@ void event_integrator<T>::step() {
 
   if(at_event && calq.current_time()==integrator<T>::t){
     at_event_name=calq.current_event();
+    calq.pop();
     return;
   }
 
