@@ -106,7 +106,7 @@ class ArrayState : public std::array<T,N> {
 template <class T, int N>
 ArrayState<T,N> operator+( const ArrayState<T,N> &a , double b ){
   ArrayState<T,N> result(a);
-  for(double& i: result)
+  for(T& i: result)
     i+=b;
   return result;
 }
@@ -127,7 +127,7 @@ ArrayState<T,N> operator+( const ArrayState<T,N> &a, const ArrayState<T,N> &b ){
 template <class T, int N>
 ArrayState<T,N> operator*( const ArrayState<T,N> &a, double b ){
   ArrayState<T,N> result(a);
-  for(double& i: result)
+  for(T& i: result)
     i*=b;
   return result;
 }
@@ -148,7 +148,7 @@ ArrayState<T,N> operator/( const ArrayState<T,N> &a, double b){
 template <class T, int N>
 double abs( const ArrayState<T,N> &a ){
   double result=0;
-  for(const double& i: a)
+  for(const T& i: a)
     result+=std::abs(i);
   return result;
 }
