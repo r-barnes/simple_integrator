@@ -9,13 +9,6 @@
 
 namespace si_lib {
 
-double abs(const double &a){
-  if(a<0)
-    return -a;
-  else
-    return a;
-}
-
 /**
   The calendar queue class stores a (time,event_name,recurrence_interval) tuple.
   It is essentially a priority queue whose top priority is always increasing.
@@ -157,6 +150,14 @@ double abs( const ArrayState<T,N> &a ){
   double result=0;
   for(const T& i: a)
     result+=abs(i);
+  return result;
+}
+
+template <int N>
+double abs( const ArrayState<double,N> &a ){
+  double result=0;
+  for(const double& i: a)
+    result+=std::abs(i);
   return result;
 }
 
