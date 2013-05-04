@@ -2,7 +2,6 @@
 #define __Integrator_
 
 #include <functional>
-#include <cmath>
 #include <array>
 #include <cassert>
 #include <queue>
@@ -149,7 +148,7 @@ template <class T, int N>
 double abs( const ArrayState<T,N> &a ){
   double result=0;
   for(const T& i: a)
-    result+=std::abs(i);
+    result+=abs(i);
   return result;
 }
 
