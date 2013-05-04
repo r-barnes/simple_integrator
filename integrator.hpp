@@ -5,8 +5,16 @@
 #include <array>
 #include <cassert>
 #include <queue>
+#include <cmath>
 
 namespace si_lib {
+
+double abs(const double &a){
+  if(a<0)
+    return -a;
+  else
+    return a;
+}
 
 /**
   The calendar queue class stores a (time,event_name,recurrence_interval) tuple.
