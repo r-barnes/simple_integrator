@@ -140,7 +140,7 @@ ArrayState<T,N> operator*( double a, const ArrayState<T,N> &b ){
 template <class T, int N>
 ArrayState<T,N> operator/( const ArrayState<T,N> &a, double b){
   ArrayState<T,N> result(a);
-  for(double& i: result)
+  for(T& i: result)
     i/=b;
   return result;
 }
