@@ -112,7 +112,7 @@ This code:
       //Run the integrator until t>=20
       while(stepper.time()<20){
 
-        //Has the time step has ended on an event
+        //Has the time step ended on an event?
         if(stepper.is_event()){
           if(stepper.event()=="large_drought") //Look up the event
             stepper.state()[0]*=0.3;           //Perform appropriate actions
